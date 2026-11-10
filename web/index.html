@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doodle Atlas</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="on-landing">
+
+  <!-- ============ SCENE 1: LANDING (realistic Earth) ============ -->
+  <section id="landing" class="scene">
+    <canvas id="earth-canvas" aria-hidden="true"></canvas>
+    <div class="landing-vignette" aria-hidden="true"></div>
+
+    <header class="landing-nav">
+      <div class="brand"><span class="brand-dot"></span>Doodle Atlas</div>
+      <div class="nav-tag">DS 340 · Final Project · Fall 2026</div>
+    </header>
+
+    <main class="hero">
+      <p class="eyebrow">A neural network that reads your doodles</p>
+      <h1>Draw anything.<br><span class="grad">We'll guess where<br>on Earth you're from.</span></h1>
+      <p class="lede">Six quick doodles. One CNN watching every stroke — guessing what you draw,
+        and which part of the world taught you to draw it that way.</p>
+      <div class="hero-actions">
+        <button id="btn-play" class="btn-primary">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>
+          Play
+        </button>
+        <button id="btn-how" class="btn-ghost">How to play</button>
+      </div>
+      <ul class="hero-stats">
+        <li><b>20</b> things to draw</li>
+        <li><b>9</b> world regions</li>
+        <li><b>500k</b> doodles learned</li>
+      </ul>
+    </main>
+
+    <footer class="landing-footer">
+      <span>Created by <b>Matthew Kim</b> &amp; <b>Lauren Kang</b></span>
+      <span class="footer-dim">Trained on Google's Quick, Draw! dataset</span>
+    </footer>
+  </section>
+
+  <!-- the wipe that carries you from space into the game -->
+  <div id="wipe" aria-hidden="true"></div>
+
+  <!-- ============ SCENE 2: GAME (cute pixel world) ============ -->
+  <section id="game" class="scene" hidden>
+    <header class="game-bar">
+      <button id="btn-home" class="px-btn px-btn--small" title="Back to the start">◀ Home</button>
+      <div class="game-title">Doodle Atlas</div>
+      <div class="round-pips" id="round-pips" aria-label="Rounds"></div>
+      <button id="btn-how-game" class="px-btn px-btn--small">? Help</button>
+    </header>
+
+    <main class="game-grid">
+      <!-- whiteboard -->
+      <div class="panel board-panel">
+        <div class="prompt px">
+          <div class="prompt-text">
+            <span class="prompt-label" id="prompt-label">Round 1 of 6 · Draw</span>
+            <span class="prompt-word" id="prompt-word">…</span>
+          </div>
+          <div class="timer" id="timer"><span id="timer-num">20</span></div>
+        </div>
+        <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+        <div class="board px" id="board-wrap">
+          <canvas id="board"></canvas>
+          <div class="board-hint" id="board-hint">✎ Start drawing here — the clock starts with your first stroke</div>
+        </div>
+        <div class="tools">
+          <button id="btn-undo" class="px-btn">↶ Undo</button>
+          <button id="btn-clear" class="px-btn">✕ Clear</button>
+          <span class="tools-gap"></span>
+          <button id="btn-done" class="px-btn px-btn--go">Done ✓</button>
+        </div>
+      </div>
+
+      <!-- guesses -->
+      <div class="panel guess-panel">
+        <div class="buddy-row">
+          <canvas id="buddy" width="16" height="16" class="buddy"></canvas>
+          <div class="bubble px" id="bubble">Hi! I'm Pip. Draw the word and I'll start guessing!</div>
+        </div>
+
+        <div class="card px">
+          <div class="card-title">I see…</div>
+          <ol class="cat-list" id="cat-list"></ol>
+        </div>
+
+        <div class="card px card--region">
+          <div class="card-title">I think you're from…</div>
+          <div class="region-name" id="region-name">???</div>
+          <div class="meter"><div class="meter-fill" id="meter-fill"></div></div>
+          <div class="meter-caption"><span id="conf-num">0%</span> confident
+            <span class="dim" id="conf-note"></span></div>
+        </div>
+      </div>
+
+      <!-- world map -->
+      <div class="panel map-panel">
+        <div class="map-frame px">
+          <div class="map-head">
+            <span>World Map</span>
+            <span class="map-legend"><i></i> glows where I think you're from</span>
+          </div>
+          <div class="map-wrap" id="map-wrap">
+            <canvas id="map"></canvas>
+            <div class="map-pin" id="map-pin" hidden><span></span></div>
+          </div>
+        </div>
+        <ul class="region-bars px" id="region-bars"></ul>
+      </div>
+    </main>
+  </section>
+
+  <!-- ============ overlays ============ -->
+  <div class="overlay" id="how-overlay" hidden>
+    <div class="modal px" role="dialog" aria-labelledby="how-title">
+      <h2 id="how-title">How to play</h2>
+      <ol class="how-steps">
+        <li><span class="step-n">1</span><div><b>Get a word.</b> Each round gives you something simple to draw — a cat, a house, a mailbox…</div></li>
+        <li><span class="step-n">2</span><div><b>Doodle it on the whiteboard.</b> You have 20 seconds, starting from your first stroke. Draw it the way you normally would!</div></li>
+        <li><span class="step-n">3</span><div><b>Watch Pip guess live.</b> The AI names your doodle while you draw, and the world map <em>glows</em> where it thinks you're from.</div></li>
+        <li><span class="step-n">4</span><div><b>Six doodles, one verdict.</b> After the last round, Pip makes a final guess with a confidence score — then you tell it if it was right.</div></li>
+      </ol>
+      <p class="how-note" id="how-note">Guessing a region from a doodle is hard — small habits (which way you draw a circle,
+        what your mailbox looks like) are the only clues. Treat it as a fun experiment, not a passport check.</p>
+      <button class="px-btn px-btn--go" id="how-close">Got it!</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="result-overlay" hidden>
+    <div class="modal modal--wide px" role="dialog" aria-labelledby="result-region">
+      <div class="result-kicker">Pip's final guess — you're from…</div>
+      <h2 class="result-region" id="result-region">…</h2>
+      <div class="result-conf">
+        <div class="meter meter--big"><div class="meter-fill" id="result-meter"></div></div>
+        <div><b id="result-conf-num">0%</b> confident</div>
+      </div>
+      <ul class="runner-ups" id="runner-ups"></ul>
+      <div class="gallery" id="gallery"></div>
+
+      <div class="feedback" id="feedback">
+        <div class="feedback-q">Was Pip right?</div>
+        <div class="feedback-btns">
+          <button class="px-btn px-btn--go" id="fb-yes">Yes! 🎉</button>
+          <button class="px-btn" id="fb-no">Nope</button>
+        </div>
+        <div class="feedback-regions" id="fb-regions" hidden></div>
+        <div class="feedback-msg" id="fb-msg"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="px-btn px-btn--go" id="btn-again">Play again</button>
+        <button class="px-btn" id="btn-result-home">Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

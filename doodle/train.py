@@ -31,7 +31,9 @@ def run_epoch(model, loader, device, region_weight, opt=None, sched=None):
     tot = cat_ok = reg_ok = 0
     loss_sum = 0.0
     with torch.set_grad_enabled(train):
-        for img, cat, reg in loader:
+        for step, (img, cat, reg) in enumerate(loader):
+            if train and step % 500 == 0:
+                print(f"   step {step}/{len(loader)}", flush=True)
             img, cat, reg = img.to(device), cat.to(device), reg.to(device)
             cat_logits, reg_logits = model(img, cat)
             loss = F.cross_entropy(cat_logits, cat) + F.cross_entropy(reg_logits, reg, weight=region_weight)
@@ -55,10 +57,10 @@ def main():
                     help="train on partial+complete drawings, or complete only")
     ap.add_argument("--name", default="model")
     ap.add_argument("--epochs", type=int, default=12)
-    ap.add_argument("--batch", type=int, default=256)
+    ap.add_argument("--batch", type=int, default=128)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--dropout", type=float, default=0.3)
-    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
 
     torch.manual_seed(SEED)

@@ -46,8 +46,14 @@ def main(path):
         polys = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
         for poly in polys:
             ring = [project(lon, lat) for lon, lat in poly[0]]
-            if len(ring) >= 3:
-                draw.polygon(ring, fill=region + 1)
+            if len(ring) < 3:
+                continue
+            fill = region
+            # overseas territories (e.g. French Guiana) belong to where they are, not to Europe
+            mean_lon = sum(lon for lon, _ in poly[0]) / len(poly[0])
+            if REGION_KEYS[region] == "western_europe" and mean_lon < -30:
+                fill = REGION_KEYS.index("latin_america")
+            draw.polygon(ring, fill=fill + 1)
 
     # downsample: a cell is land if >= 35% of its subpixels are land;
     # its region is the most common region among them

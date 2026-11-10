@@ -1,0 +1,7 @@
+507,316 drawings | train 405,852 | val 50,732 | device mps
+train drawings per region: {'North America': 47831, 'Latin America': 47979, 'Western Europe': 48135, 'Eastern Europe': 47976, 'Middle East & Africa': 48032, 'South Asia': 22137, 'East Asia': 48034, 'Southeast Asia': 47800, 'Oceania': 47928}
+deep CNN, 1,255,293 parameters
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170

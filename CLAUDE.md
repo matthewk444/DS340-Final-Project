@@ -56,3 +56,19 @@ Train a neural network to predict what **region of the world** a user is from ba
 
 ## Deliverables at end of semester
 - Working demo, lightning talk, and final paper.
+
+---
+
+# Implementation notes (current state of the repo)
+
+The game is called **Doodle Atlas**. See `README.md` for run/play instructions and the file layout.
+
+- **Run:** `.venv/bin/python -m uvicorn server.app:app --port 8000` → http://localhost:8000
+- **Pipeline:** `python -m doodle.download` → `python -m doodle.train` → `python -m doodle.evaluate`
+- **Stack:** PyTorch CNN (two heads: 20 categories, 9 regions), FastAPI server, plain HTML/CSS/JS front end (no build step). three.js is vendored in `web/vendor/`.
+- **Regions (9):** North America, Latin America, Western Europe, Eastern Europe, Middle East & Africa, South Asia, East Asia, Southeast Asia, Oceania — defined in `doodle/regions.py`.
+- **Important invariant:** `doodle/render.py` is the single source of truth for turning strokes into the model's input. Training, evaluation and the live server all call it; never re-implement rendering in JavaScript.
+- **UI:** landing page = realistic 3D Earth (dark, Space Grotesk); game = cute pixel style (cream/teal palette, Pixelify Sans + Nunito), with whiteboard (left), Pip's guesses (middle), glowing pixel world map (right).
+- **This Mac has 8 GB RAM** and is often swapping: keep training at batch 128 / 4 workers, and don't run two trainings at once.
+- **Git:** commit regularly as work progresses (user request). Push when a remote exists.
+- Be honest in any write-up about accuracy: region prediction from doodles is a weak signal; report numbers from `results/`.
