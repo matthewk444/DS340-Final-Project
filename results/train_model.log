@@ -19,3 +19,82 @@ epoch  1 |  467s | train loss 3.068 | val category 0.916 region 0.136 | at 50% d
 epoch  2 |  480s | train loss 2.774 | val category 0.954 region 0.182 | at 50% drawn: category 0.623 region 0.169
    step 0/3170
    step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  3 |  409s | train loss 2.704 | val category 0.958 region 0.179 | at 50% drawn: category 0.654 region 0.172
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  4 |  405s | train loss 2.656 | val category 0.964 region 0.200 | at 50% drawn: category 0.675 region 0.187
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  5 |  405s | train loss 2.616 | val category 0.971 region 0.200 | at 50% drawn: category 0.679 region 0.186
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  6 |  407s | train loss 2.580 | val category 0.972 region 0.209 | at 50% drawn: category 0.700 region 0.192
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  7 |  410s | train loss 2.550 | val category 0.973 region 0.211 | at 50% drawn: category 0.701 region 0.192
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  8 |  411s | train loss 2.525 | val category 0.975 region 0.221 | at 50% drawn: category 0.720 region 0.199
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  9 |  409s | train loss 2.497 | val category 0.977 region 0.225 | at 50% drawn: category 0.724 region 0.200
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch 10 |  410s | train loss 2.475 | val category 0.977 region 0.225 | at 50% drawn: category 0.726 region 0.204
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch 11 |  412s | train loss 2.454 | val category 0.979 region 0.230 | at 50% drawn: category 0.729 region 0.205
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch 12 |  413s | train loss 2.448 | val category 0.978 region 0.232 | at 50% drawn: category 0.729 region 0.206
+saved best checkpoint to /Users/matthewkim/DS340-Final-Project/models/model.pt

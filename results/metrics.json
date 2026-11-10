@@ -1,0 +1,224 @@
+{
+ "name": "model",
+ "arch": "deep",
+ "train_mode": "mixed",
+ "epoch": 12,
+ "test_drawings": 50732,
+ "regions": [
+  "North America",
+  "Latin America",
+  "Western Europe",
+  "Eastern Europe",
+  "Middle East & Africa",
+  "South Asia",
+  "East Asia",
+  "Southeast Asia",
+  "Oceania"
+ ],
+ "by_completion": {
+  "25": {
+   "category_accuracy": 0.4688165260585035,
+   "region_accuracy": 0.18507056690057558,
+   "region_balanced_accuracy": 0.19083843668475764,
+   "region_top3_accuracy": 0.4599069620752188
+  },
+  "50": {
+   "category_accuracy": 0.7256958132933848,
+   "region_accuracy": 0.20693053693920996,
+   "region_balanced_accuracy": 0.2153570840506502,
+   "region_top3_accuracy": 0.49245052432389813
+  },
+  "75": {
+   "category_accuracy": 0.9135062682330679,
+   "region_accuracy": 0.22400063076559174,
+   "region_balanced_accuracy": 0.23313063572946494,
+   "region_top3_accuracy": 0.5163999053851612
+  },
+  "100": {
+   "category_accuracy": 0.9768982102026335,
+   "region_accuracy": 0.23620200268075375,
+   "region_balanced_accuracy": 0.2471017498975706,
+   "region_top3_accuracy": 0.5365844043207443
+  }
+ },
+ "region_accuracy_complete": 0.23620200268075375,
+ "confusion_matrix_rows_true_cols_pred": [
+  [
+   1735,
+   712,
+   258,
+   786,
+   767,
+   730,
+   568,
+   259,
+   300
+  ],
+  [
+   877,
+   1234,
+   238,
+   1134,
+   578,
+   829,
+   710,
+   267,
+   228
+  ],
+  [
+   1023,
+   766,
+   320,
+   1232,
+   685,
+   693,
+   623,
+   206,
+   353
+  ],
+  [
+   715,
+   806,
+   307,
+   1688,
+   574,
+   735,
+   724,
+   217,
+   240
+  ],
+  [
+   797,
+   498,
+   196,
+   672,
+   1810,
+   1060,
+   543,
+   154,
+   166
+  ],
+  [
+   280,
+   185,
+   46,
+   255,
+   263,
+   1128,
+   413,
+   109,
+   55
+  ],
+  [
+   374,
+   333,
+   59,
+   576,
+   322,
+   826,
+   3092,
+   226,
+   132
+  ],
+  [
+   802,
+   592,
+   164,
+   791,
+   538,
+   1272,
+   1278,
+   411,
+   236
+  ],
+  [
+   1252,
+   609,
+   273,
+   925,
+   669,
+   742,
+   695,
+   231,
+   565
+  ]
+ ],
+ "region_accuracy_per_category": {
+  "circle": 0.1981094919259551,
+  "house": 0.24775876120619397,
+  "power outlet": 0.34452082490901736,
+  "chair": 0.21649883810999226,
+  "bread": 0.24938271604938272,
+  "mailbox": 0.23003194888178913,
+  "snowman": 0.23825503355704697,
+  "bus": 0.2518346852066435,
+  "cake": 0.22487844408427876,
+  "cup": 0.24189723320158102,
+  "traffic light": 0.24640497473766032,
+  "tree": 0.24241229798975167,
+  "sun": 0.21831561733442356,
+  "face": 0.2318672839506173,
+  "cat": 0.2256331542594014,
+  "star": 0.21161495624502785,
+  "fish": 0.23088923556942278,
+  "flower": 0.19739952718676124,
+  "car": 0.2544898739014138,
+  "door": 0.22373696872493987
+ },
+ "baselines": {
+  "majority_region": 0.11631711740124576,
+  "chance": 0.1111111111111111,
+  "category_only": 0.11450366632500197,
+  "logistic_regression_pixels": 0.16306666666666667
+ },
+ "combined_doodles": {
+  "1": {
+   "alpha": 1.025,
+   "accuracy": 0.24625,
+   "top3_accuracy": 0.55025,
+   "mean_confidence": 0.23481300473213196
+  },
+  "2": {
+   "alpha": 1.0999999999999999,
+   "accuracy": 0.3035,
+   "top3_accuracy": 0.61325,
+   "mean_confidence": 0.3081110119819641
+  },
+  "3": {
+   "alpha": 1.05,
+   "accuracy": 0.37225,
+   "top3_accuracy": 0.67925,
+   "mean_confidence": 0.3577842712402344
+  },
+  "4": {
+   "alpha": 1.025,
+   "accuracy": 0.41775,
+   "top3_accuracy": 0.735,
+   "mean_confidence": 0.3962111175060272
+  },
+  "5": {
+   "alpha": 1.075,
+   "accuracy": 0.4425,
+   "top3_accuracy": 0.7635,
+   "mean_confidence": 0.43960335850715637
+  },
+  "6": {
+   "alpha": 1.05,
+   "accuracy": 0.472,
+   "top3_accuracy": 0.79475,
+   "mean_confidence": 0.4611048102378845
+  }
+ },
+ "game": {
+  "alphas": [
+   1.025,
+   1.0999999999999999,
+   1.05,
+   1.025,
+   1.075,
+   1.05
+  ],
+  "alpha": 1.05,
+  "accuracy": 0.472
+ }
+}

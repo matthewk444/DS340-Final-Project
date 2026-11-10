@@ -64,7 +64,7 @@ Measured results are in [`results/RESULTS.md`](results/RESULTS.md).
 
 ```bash
 .venv/bin/python -m doodle.download      # streams ~2 GB from Google, keeps a 41 MB balanced sample in data/
-.venv/bin/python -m doodle.train         # trains the main model -> models/model.pt   (about 1 hour on an M3 MacBook)
+.venv/bin/python -m doodle.train         # trains the main model -> models/model.pt   (about 1.5 hours on an 8 GB M3 MacBook)
 .venv/bin/python -m doodle.evaluate      # test-set results -> results/RESULTS.md and results/metrics.json
 ```
 
