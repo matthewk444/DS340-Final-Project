@@ -5,3 +5,17 @@ deep CNN, 1,255,293 parameters
    step 500/3170
    step 1000/3170
    step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  1 |  467s | train loss 3.068 | val category 0.916 region 0.136 | at 50% drawn: category 0.599 region 0.136
+   step 0/3170
+   step 500/3170
+   step 1000/3170
+   step 1500/3170
+   step 2000/3170
+   step 2500/3170
+   step 3000/3170
+epoch  2 |  480s | train loss 2.774 | val category 0.954 region 0.182 | at 50% drawn: category 0.623 region 0.169
+   step 0/3170
+   step 500/3170

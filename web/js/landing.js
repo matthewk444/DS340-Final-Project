@@ -8,10 +8,19 @@ const ATMOSPHERE_VERT = `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }`;
 const ATMOSPHERE_FRAG = `
+  // outer halo (drawn on the back faces of a bigger sphere): brightest at the
+  // planet's edge, fading to nothing at the halo's own edge
   varying vec3 vNormal;
   void main() {
-    float glow = pow(0.74 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.2);
-    gl_FragColor = vec4(0.32, 0.62, 1.0, 1.0) * glow;
+    float glow = pow(clamp(-vNormal.z / 0.52, 0.0, 1.0), 2.4);
+    gl_FragColor = vec4(0.30, 0.60, 1.0, 1.0) * glow * 1.5;
+  }`;
+const RIM_FRAG = `
+  // thin blue haze over the lit edge of the planet itself
+  varying vec3 vNormal;
+  void main() {
+    float rim = pow(1.0 - clamp(vNormal.z, 0.0, 1.0), 3.5);
+    gl_FragColor = vec4(0.35, 0.65, 1.0, 1.0) * rim * 0.9;
   }`;
 
 export function createLanding(canvas) {
@@ -73,6 +82,14 @@ export function createLanding(canvas) {
   atmosphere.scale.setScalar(1.17);
   atmosphere.position.copy(globe.position);
   scene.add(atmosphere);
+  const rim = new THREE.Mesh(
+    new THREE.SphereGeometry(1.53, 64, 64),
+    new THREE.ShaderMaterial({
+      vertexShader: ATMOSPHERE_VERT, fragmentShader: RIM_FRAG,
+      blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
+    })
+  );
+  globe.add(rim);
 
   // sunlight from the upper left, a faint blue fill so the night side is not pure black
   const sun = new THREE.DirectionalLight(0xffffff, 3.0);
@@ -137,7 +154,7 @@ export function createLanding(canvas) {
       camera.position.x += (mouse.x * 0.25 - camera.position.x) * 0.04;
       camera.position.y += (-mouse.y * 0.18 - camera.position.y) * 0.04;
     }
-    camera.lookAt(zoom ? globe.position : new THREE.Vector3(0, 0, 0));
+    camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }

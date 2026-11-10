@@ -6,3 +6,5 @@ venv/
 .ipynb_checkpoints/
 data/
 *.ndjson
+models/*.pt
+!models/model.pt

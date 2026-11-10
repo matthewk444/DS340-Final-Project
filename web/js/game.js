@@ -67,7 +67,7 @@ export async function createGame({ onHome }) {
   board.addEventListener("pointerdown", (e) => {
     if (phase === "review" || phase === "idle") return;
     e.preventDefault();
-    board.setPointerCapture(e.pointerId);
+    try { board.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointers cannot be captured */ }
     current = [point(e)];
     if (timerStart === null) timerStart = performance.now();
     $("board-hint").classList.add("gone");
@@ -75,7 +75,8 @@ export async function createGame({ onHome }) {
   });
   board.addEventListener("pointermove", (e) => {
     if (!current) return;
-    for (const ev of e.getCoalescedEvents ? e.getCoalescedEvents() : [e]) {
+    const batch = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of batch.length ? batch : [e]) {
       const p = point(ev), q = current[current.length - 1];
       if (Math.hypot(p[0] - q[0], p[1] - q[1]) >= 1.5) current.push(p);
     }
@@ -213,7 +214,14 @@ export async function createGame({ onHome }) {
   async function endRound() {
     if (phase !== "drawing") return;
     endStroke();
-    if (!strokes.length) { say("Draw something first — even a quick scribble!"); return; }
+    if (!strokes.length) {
+      // nothing on the board: reset the clock instead of ending the round
+      timerStart = null;
+      $("timer-num").textContent = SECONDS; $("timer").classList.remove("hurry");
+      $("timer-fill").style.transform = "scaleX(1)";
+      say("Draw something first — even a quick scribble!");
+      return;
+    }
     phase = "review"; token++;
     wrap.classList.add("locked");
     btnUndo.disabled = btnClear.disabled = true;
