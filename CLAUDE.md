@@ -72,3 +72,4 @@ The game is called **Doodle Atlas**. See `README.md` for run/play instructions a
 - **This Mac has 8 GB RAM** and is often swapping: keep training at batch 128 / 4 workers, and don't run two trainings at once.
 - **Git:** commit regularly as work progresses (user request). Push when a remote exists.
 - Be honest in any write-up about accuracy: region prediction from doodles is a weak signal; report numbers from `results/`.
+- **Game flow (changed Nov 10 at Matthew's request):** no prompts. The player freely draws one of the 20 known objects, the model guesses blind, and after each of the 6 rounds the player confirms (Yes / Nope → pick the real object or "something else"). Reason: telling the player what to draw felt like it biased the guessing. Don't reintroduce prompts.

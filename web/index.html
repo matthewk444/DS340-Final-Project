@@ -60,21 +60,25 @@
       <div class="panel board-panel">
         <div class="prompt px">
           <div class="prompt-text">
-            <span class="prompt-label" id="prompt-label">Round 1 of 6 · Draw</span>
-            <span class="prompt-word" id="prompt-word">…</span>
+            <span class="prompt-label" id="prompt-label">Round 1 of 6</span>
+            <span class="prompt-word" id="prompt-word">Draw anything!</span>
           </div>
           <div class="timer" id="timer"><span id="timer-num">20</span></div>
         </div>
         <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
         <div class="board px" id="board-wrap">
           <canvas id="board"></canvas>
-          <div class="board-hint" id="board-hint">✎ Start drawing here — the clock starts with your first stroke</div>
+          <div class="board-hint" id="board-hint">✎ Pick something from the list below and start drawing.<br>Don't tell Pip what it is! The clock starts with your first stroke.</div>
         </div>
         <div class="tools">
           <button id="btn-undo" class="px-btn">↶ Undo</button>
           <button id="btn-clear" class="px-btn">✕ Clear</button>
           <span class="tools-gap"></span>
           <button id="btn-done" class="px-btn px-btn--go">Done ✓</button>
+        </div>
+        <div class="known">
+          <span class="known-label">Pip knows:</span>
+          <span id="known-list"></span>
         </div>
       </div>
 
@@ -88,6 +92,14 @@
         <div class="card px">
           <div class="card-title">I see…</div>
           <ol class="cat-list" id="cat-list"></ol>
+          <div class="confirm" id="confirm" hidden>
+            <div class="confirm-q" id="confirm-q">Did I get it?</div>
+            <div class="confirm-btns" id="confirm-btns">
+              <button class="px-btn px-btn--small px-btn--go" id="confirm-yes">Yes!</button>
+              <button class="px-btn px-btn--small" id="confirm-no">Nope</button>
+            </div>
+            <div class="confirm-pick" id="confirm-pick" hidden></div>
+          </div>
         </div>
 
         <div class="card px card--region">
@@ -121,10 +133,10 @@
     <div class="modal px" role="dialog" aria-labelledby="how-title">
       <h2 id="how-title">How to play</h2>
       <ol class="how-steps">
-        <li><span class="step-n">1</span><div><b>Get a word.</b> Each round gives you something simple to draw — a cat, a house, a mailbox…</div></li>
+        <li><span class="step-n">1</span><div><b>Pick something to draw — secretly.</b> Choose anything from the list of 20 things Pip knows (a cat, a house, a mailbox…). Pip is not told what you picked.</div></li>
         <li><span class="step-n">2</span><div><b>Doodle it on the whiteboard.</b> You have 20 seconds, starting from your first stroke. Draw it the way you normally would!</div></li>
-        <li><span class="step-n">3</span><div><b>Watch Pip guess live.</b> The AI names your doodle while you draw, and the world map <em>glows</em> where it thinks you're from.</div></li>
-        <li><span class="step-n">4</span><div><b>Six doodles, one verdict.</b> After the last round, Pip makes a final guess with a confidence score — then you tell it if it was right.</div></li>
+        <li><span class="step-n">3</span><div><b>Watch Pip guess live.</b> The AI tries to name your doodle while you draw, and the world map <em>glows</em> where it thinks you're from. When you finish, tell Pip if it got your doodle right.</div></li>
+        <li><span class="step-n">4</span><div><b>Six doodles, one verdict.</b> Draw six different things. After the last round, Pip makes a final guess about your region with a confidence score — then you tell it if it was right.</div></li>
       </ol>
       <p class="how-note" id="how-note">Guessing a region from a doodle is hard — small habits (which way you draw a circle,
         what your mailbox looks like) are the only clues. Treat it as a fun experiment, not a passport check.</p>
@@ -141,6 +153,7 @@
         <div><b id="result-conf-num">0%</b> confident</div>
       </div>
       <ul class="runner-ups" id="runner-ups"></ul>
+      <div class="result-score" id="result-score"></div>
       <div class="gallery" id="gallery"></div>
 
       <div class="feedback" id="feedback">

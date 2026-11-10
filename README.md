@@ -17,22 +17,27 @@
 
 A drawing game where a neural network watches you doodle and guesses two things in real time:
 
-1. 🎨 **What you're drawing** (like Google's Quick, Draw!)
+1. 🎨 **What you're drawing** — you choose it, nobody tells the AI (like Google's Quick, Draw!, but without a prompt)
 2. 🗺️ **Which region of the world you're from**, with a confidence score — and a pixel-art world map that glows where the model thinks you live.
 
 ## 📸 A look at the game
 
-| Guessing while you draw | The map heats up as Pip gets more sure |
+| You draw, Pip guesses live | "Did I get it?" |
 |:---:|:---:|
-| <img src="docs/screenshots/game-drawing.png" alt="Round 3: a half-finished traffic light, already recognised, East Asia at 32%"> | <img src="docs/screenshots/game-map-glow.png" alt="Round 5: a flower, East Asia glowing coral at 90% confidence"> |
-| Halfway through a traffic light, Pip already knows what it is and has a first hunch about the region. | Five doodles in, East Asia glows coral and the confidence meter fills up. |
+| <img src="docs/screenshots/game-drawing.png" alt="A half-finished doodle with Pip's live guesses and the world map"> | <img src="docs/screenshots/game-confirm.png" alt="Pip asks: is it the sun? with Yes and Nope buttons; East Asia glowing at 64%"> |
+| Nobody tells Pip what you're drawing — it has to work it out from your strokes. | When you finish, Pip commits to a guess and you tell it if it's right. |
+
+| Wrong guess? Tell Pip what it was | The map heats up as Pip gets more sure |
+|:---:|:---:|
+| <img src="docs/screenshots/game-correct-pip.png" alt="After pressing Nope, a list of objects to pick the right answer from"> | <img src="docs/screenshots/game-map-glow.png" alt="Round 5: East Asia glowing coral on the pixel world map at 95% confidence"> |
+| Pick the real answer (or "something else") and Pip uses it as a clue. | Green = probably not, yellow → coral = more and more sure. |
 
 | Pip's final verdict | How to play |
 |:---:|:---:|
-| <img src="docs/screenshots/result.png" alt="Final verdict screen: East Asia, 37% confident, with a gallery of the six doodles"> | <img src="docs/screenshots/how-to-play.jpg" alt="How to play dialog with four steps"> |
-| After six doodles: one guess, a confidence score, your gallery — and you tell Pip if it was right. | The in-game instructions, one click from the landing page. |
+| <img src="docs/screenshots/result.png" alt="Final verdict: East Asia, 99% confident, Pip named 6 of 6 doodles, with a gallery"> | <img src="docs/screenshots/how-to-play.jpg" alt="How to play dialog with four steps"> |
+| After six doodles: one region guess, a confidence score, and your gallery. | The in-game instructions, one click from the landing page. |
 
-<sub>The doodles in these screenshots are real drawings by East Asian players from the Quick, Draw! test set (never seen in training), replayed stroke by stroke through the game. Confidence moves both ways: it hit 90% after five doodles and fell to 37% after the sixth.</sub>
+<sub>The doodles in these screenshots are real drawings by East Asian players from the Quick, Draw! test set (never seen in training), replayed stroke by stroke through the game. This is one of the runs where Pip got the region right — of three sample runs we replayed, it was right in two. See the measured accuracy below.</sub>
 
 ## 📊 How good is it?
 
@@ -73,17 +78,20 @@ To stop the server press `Ctrl + C` in the terminal.
 ## 🎮 2. How to play
 
 1. On the landing page press **Play** (or **How to play** for the in-game instructions).
-2. Each round shows a word, e.g. **"Draw: snowman"**. Draw it on the white board with your mouse, trackpad or finger.
-3. The **20-second timer** starts with your first stroke. Use **Undo** / **Clear** if you mess up, and **Done ✓** when you're finished (or just let the timer run out).
+2. **Secretly pick something to draw** from the "Pip knows" list under the whiteboard (20 objects). The game does **not** tell the model what you picked — it has to guess from your drawing alone.
+3. Draw it on the white board with your mouse, trackpad or finger. The **20-second timer** starts with your first stroke. Use **Undo** / **Clear** if you mess up, and **Done ✓** when you're finished (or let the timer run out).
 4. While you draw:
    - **"I see…"** lists the AI's top 3 guesses for *what* you're drawing.
    - **"I think you're from…"** shows its best guess for your region and how confident it is.
    - The **world map glows** — green means "probably not", yellow → coral means "more and more sure". The bars under the map show the percentage for all 9 regions.
-5. After **6 doodles** Pip (the little globe) gives a final verdict that combines all six drawings. Tell it whether it was right — it keeps a score on your computer.
+5. When the round ends, Pip asks **"Is it a …?"**
+   - **Yes!** – Pip got it.
+   - **Nope** – pick what it really was from the list, or **something else** if it wasn't one of the 20 objects (that doodle is then not used as a region clue).
+6. Draw **six different things** (objects you've used are crossed out). After the sixth, Pip gives a final verdict on your region that combines all your doodles, and shows how many doodles it named correctly. Tell it whether the region was right — it keeps a score on your computer.
 
 **The 9 regions:** North America · Latin America · Western Europe · Eastern Europe · Middle East & Africa · South Asia · East Asia · Southeast Asia · Oceania
 
-**The 20 things you may be asked to draw:** circle, house, power outlet, chair, bread, mailbox, snowman, bus, cake, cup, traffic light, tree, sun, face, cat, star, fish, flower, car, door
+**The 20 things Pip knows:** circle, house, power outlet, chair, bread, mailbox, snowman, bus, cake, cup, traffic light, tree, sun, face, cat, star, fish, flower, car, door
 
 ## 🧠 3. How it works
 
@@ -95,6 +103,7 @@ your strokes ──► server renders a 3×64×64 image ──► CNN ──► 
 - **Data:** [Google Quick, Draw!](https://github.com/googlecreativelab/quickdraw-dataset) simplified NDJSON files. Every drawing has a country code; we map countries to 9 regions (`doodle/regions.py`) and keep up to 3,000 drawings per region per category → **507,316 drawings**, almost perfectly balanced across regions (South Asia has fewer drawings available).
 - **Image encoding (`doodle/render.py`):** a normal bitmap forgets *how* you drew. We use 3 channels: (1) the ink, (2) drawing order — early ink is dim, late ink is bright, (3) stroke direction — each stroke fades from start to end. This lets the CNN see habits like which way you draw a circle.
 - **Model (`doodle/model.py`):** one CNN (4 conv blocks: 32→64→128→256 filters, batch norm, max-pool, dropout) with two heads. The region head is also told which object is being drawn.
+- **No hints in the game:** while you draw, the model is never told what the object is; the region head uses the model's *own* guess. Only after you confirm or correct Pip at the end of a round is the region estimate for that doodle recomputed with the confirmed object.
 - **Partial drawings:** during training half of the drawings are cut off at a random point (15–100% finished), so the model can guess while you are still drawing.
 - **Combining six doodles:** the game adds up the log-probabilities from each finished doodle (scaled by a calibration factor fitted on validation data) to get the overall belief shown on the map.
 

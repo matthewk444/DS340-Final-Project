@@ -33,9 +33,10 @@ export async function createGame({ onHome }) {
   const barRows = [...$("region-bars").children];
 
   // ---------- state ----------
-  let prompts = [], round = 0, strokes = [], current = null;
-  let phase = "idle";            // idle | drawing | review
-  let timerStart = null, celebrated = false;
+  let round = 0, strokes = [], current = null;
+  const drawn = new Set();       // objects the player has already drawn this game
+  let phase = "idle";            // idle | drawing | confirm | review
+  let timerStart = null;
   let roundLogs = [];            // log region-probabilities of each finished doodle
   let gallery = [];              // {img, word, guess, hit}
   let lastPred = null, inflight = false, dirty = false, token = 0;
@@ -65,7 +66,7 @@ export async function createGame({ onHome }) {
     return [Math.round((e.clientX - r.left) * 10) / 10, Math.round((e.clientY - r.top) * 10) / 10];
   };
   board.addEventListener("pointerdown", (e) => {
-    if (phase === "review" || phase === "idle") return;
+    if (phase !== "drawing") return;
     e.preventDefault();
     try { board.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointers cannot be captured */ }
     current = [point(e)];
@@ -95,12 +96,13 @@ export async function createGame({ onHome }) {
   btnClear.onclick = () => { if (phase === "drawing") { strokes = []; redraw(); requestPrediction(); } };
 
   // ---------- predictions ----------
-  async function fetchPrediction() {
+  /** category = null lets the model use its own guess of what the doodle is. */
+  async function fetchPrediction(category = null) {
     const all = current ? [...strokes, current] : strokes;
     if (!all.length) return null;
     const res = await fetch("/api/predict", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ strokes: all, category: prompts[round] }),
+      body: JSON.stringify({ strokes: all, category }),
     });
     if (!res.ok) throw new Error(`predict failed: ${res.status}`);
     const out = await res.json();
@@ -158,12 +160,12 @@ export async function createGame({ onHome }) {
     });
   }
 
-  function showCategories(pred) {
+  function showCategories(pred, confirmed = -1) {
     const list = $("cat-list");
     if (!pred) { list.innerHTML = `<li class="empty">Nothing yet — start doodling!</li>`; return null; }
     const ranked = pred.category_probs.map((p, i) => [p, i]).sort((a, b) => b[0] - a[0]).slice(0, 3);
     list.innerHTML = ranked.map(([p, i]) =>
-      `<li class="${i === prompts[round] ? "hit" : ""}"><span class="name">${EMOJI[categories[i]] || ""} ${categories[i]}</span>` +
+      `<li class="${i === confirmed ? "hit" : ""}"><span class="name">${EMOJI[categories[i]] || ""} ${categories[i]}</span>` +
       `<span>${pct(p)}</span><span class="bar"><i style="width:${pct(p)}"></i></span></li>`).join("");
     return ranked[0];
   }
@@ -171,14 +173,12 @@ export async function createGame({ onHome }) {
   function showPrediction() {
     const top = showCategories(lastPred);
     showRegions(belief(lastPred));
-    const word = categories[prompts[round]];
-    if (!top) { say(`Draw ${withArticle(word)} — I'm watching!`); return; }
+    if (!top) { say("Draw anything from my list — I'm watching!"); return; }
     const [p, i] = top;
-    if (i === prompts[round] && p > 0.5) {
-      say(`Oh! I know — it's ${withArticle(word)}! ${EMOJI[word] || ""} Keep going, every stroke is a clue.`);
-      if (!celebrated) { celebrated = true; hop(); }
-    } else if (p < 0.3) say("Hmm… I see squiggles. Keep going!");
-    else say(`Is it ${withArticle(categories[i])}? ${EMOJI[categories[i]] || ""}`);
+    const name = `${withArticle(categories[i])} ${EMOJI[categories[i]] || ""}`;
+    if (p < 0.3) say("Hmm… I see squiggles. Keep going!");
+    else if (p < 0.65) say(`Is it ${name}?`);
+    else say(`Ooh, I think it's ${name}! Keep going, every stroke is a clue.`);
   }
 
   function say(text) { bubble.textContent = text; }
@@ -186,31 +186,36 @@ export async function createGame({ onHome }) {
 
   // ---------- rounds ----------
   function renderPips() {
-    $("round-pips").innerHTML = prompts.map((_, i) =>
+    $("round-pips").innerHTML = Array.from({ length: ROUNDS }, (_, i) =>
       `<span class="pip ${i < round ? "done" : i === round ? "now" : ""}"></span>`).join("");
+  }
+  function renderKnown() {
+    $("known-list").innerHTML = categories.map((c, i) =>
+      `<span class="chip ${drawn.has(i) ? "used" : ""}">${EMOJI[c] || ""} ${c}</span>`).join("");
   }
 
   function startRound() {
     token++;
-    strokes = []; current = null; lastPred = null; timerStart = null; celebrated = false;
+    strokes = []; current = null; lastPred = null; timerStart = null;
     phase = "drawing";
-    const word = categories[prompts[round]];
-    $("prompt-label").textContent = `Round ${round + 1} of ${ROUNDS} · Draw`;
-    $("prompt-word").textContent = `${word} ${EMOJI[word] || ""}`;
+    $("prompt-label").textContent = `Round ${round + 1} of ${ROUNDS}`;
+    $("prompt-word").textContent = round === 0 ? "Draw anything!" : "Draw another!";
     $("timer-num").textContent = SECONDS;
     $("timer").classList.remove("hurry");
     $("timer-fill").style.transform = "scaleX(1)";
     $("board-hint").classList.remove("gone");
+    $("confirm").hidden = true;
     wrap.classList.remove("locked");
     btnDone.textContent = "Done ✓";
-    btnUndo.disabled = btnClear.disabled = false;
-    renderPips(); redraw();
+    btnDone.disabled = btnUndo.disabled = btnClear.disabled = false;
+    renderPips(); renderKnown(); redraw();
     showCategories(null);
     showRegions(belief(null));
-    say(round === 0 ? `Hi! I'm Pip. Draw ${withArticle(word)} and I'll start guessing!`
-                    : `Next up: ${withArticle(word)}! Draw it your way.`);
+    say(round === 0 ? "Hi! I'm Pip. Pick anything from my list, don't tell me what — just draw, and I'll guess!"
+                    : "Next one! Pick something different and surprise me.");
   }
 
+  /** Time is up (or Done was pressed): Pip commits to a guess and asks if it is right. */
   async function endRound() {
     if (phase !== "drawing") return;
     endStroke();
@@ -222,25 +227,52 @@ export async function createGame({ onHome }) {
       say("Draw something first — even a quick scribble!");
       return;
     }
-    phase = "review"; token++;
+    phase = "confirm"; token++;
     wrap.classList.add("locked");
-    btnUndo.disabled = btnClear.disabled = true;
-    btnDone.disabled = true;
-    const word = categories[prompts[round]];
+    btnDone.disabled = btnUndo.disabled = btnClear.disabled = true;
     try { lastPred = (await fetchPrediction()) || lastPred; } catch (err) { /* keep the last live prediction */ }
-    btnDone.disabled = false;
-    if (lastPred) {
+    if (!lastPred) { say("I couldn't reach the model — is the server running?"); phase = "drawing"; btnDone.disabled = false; return; }
+    const guess = showCategories(lastPred)[1];
+    say(`My guess: ${withArticle(categories[guess])} ${EMOJI[categories[guess]] || ""} — did I get it?`);
+
+    // ask the player: right or wrong? (and if wrong, what was it?)
+    const box = $("confirm"), pick = $("confirm-pick");
+    $("confirm-q").textContent = `Is it ${withArticle(categories[guess])}?`;
+    $("confirm-btns").hidden = false; pick.hidden = true; box.hidden = false;
+    $("confirm-yes").onclick = () => finishRound(guess, guess);
+    $("confirm-no").onclick = () => {
+      $("confirm-q").textContent = "Oops! What was it?";
+      $("confirm-btns").hidden = true; pick.hidden = false;
+      pick.innerHTML = categories.map((c, i) => i === guess ? "" :
+        `<button class="chip chip--btn" data-c="${i}">${EMOJI[c] || ""} ${c}</button>`).join("") +
+        `<button class="chip chip--btn chip--other" data-c="-1">something else</button>`;
+      pick.querySelectorAll("button").forEach((b) => { b.onclick = () => finishRound(guess, +b.dataset.c); });
+    };
+  }
+
+  /** truth = index of what the player really drew, or -1 for something Pip doesn't know. */
+  async function finishRound(guess, truth) {
+    if (phase !== "confirm") return;
+    phase = "review";
+    $("confirm").hidden = true;
+    const hit = guess === truth;
+    const img = board.toDataURL("image/png");
+    if (truth >= 0) {
+      // the region head works best when it knows what the object is, so re-ask with the confirmed answer
+      if (!hit) { try { lastPred = (await fetchPrediction(truth)) || lastPred; } catch (err) { /* keep previous */ } }
       roundLogs.push(lastPred.region_probs.map(Math.log));
-      const top = showCategories(lastPred);
-      showRegions(belief(null));
-      const hit = top[1] === prompts[round];
-      gallery.push({ img: board.toDataURL("image/png"), word, guess: categories[top[1]], hit });
-      say(hit ? `Got it — ${withArticle(word)}! ${round + 1 < ROUNDS ? "Ready for the next one?" : "That's all six!"}`
-              : `I guessed ${withArticle(categories[top[1]])}… it was ${withArticle(word)}? Still a useful clue!`);
-      if (hit) hop();
+      drawn.add(truth);
     }
+    showCategories(lastPred, truth);
+    showRegions(belief(null));
+    gallery.push({ img, word: truth >= 0 ? categories[truth] : "something else", guess: categories[guess], hit });
     round++;
-    renderPips();
+    const more = round < ROUNDS ? "Ready for the next one?" : "That's all six!";
+    if (hit) { say(`Yes! ${withArticle(categories[guess])[0].toUpperCase() + withArticle(categories[guess]).slice(1)}! ${more}`); hop(); }
+    else if (truth >= 0) say(`Ahh, ${withArticle(categories[truth])}! Thanks — that's still a clue about where you're from. ${more}`);
+    else say(`I don't know that one yet, so I won't count it as a clue. ${more}`);
+    renderPips(); renderKnown();
+    btnDone.disabled = false;
     btnDone.textContent = round < ROUNDS ? "Next doodle →" : "See Pip's guess ★";
   }
 
@@ -264,7 +296,17 @@ export async function createGame({ onHome }) {
   // ---------- final verdict ----------
   function showResult() {
     const b = belief(null);
-    if (!b) { start(); return; }
+    const hits = gallery.filter((g) => g.hit).length;
+    $("result-score").textContent = `Pip named ${hits} of your ${gallery.length} doodles`;
+    if (!b) {
+      $("result-region").textContent = "No idea!";
+      $("result-conf-num").textContent = "0%"; $("result-meter").style.width = "0%";
+      $("runner-ups").innerHTML = "<li>I didn't recognise enough doodles to guess a region</li>";
+      $("gallery").innerHTML = ""; $("feedback").hidden = true;
+      $("result-overlay").hidden = false;
+      return;
+    }
+    $("feedback").hidden = false;
     const order = b.probs.map((p, r) => [p, r]).sort((x, y) => y[0] - x[0]);
     const [topP, top] = order[0];
     $("result-region").textContent = regionNames[top];
@@ -305,11 +347,7 @@ export async function createGame({ onHome }) {
 
   function start() {
     $("result-overlay").hidden = true;
-    // six different random prompts
-    const pool = categories.map((_, i) => i);
-    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-    prompts = pool.slice(0, ROUNDS);
-    round = 0; roundLogs = []; gallery = [];
+    round = 0; roundLogs = []; gallery = []; drawn.clear();
     sizeBoard();
     startRound();
   }
